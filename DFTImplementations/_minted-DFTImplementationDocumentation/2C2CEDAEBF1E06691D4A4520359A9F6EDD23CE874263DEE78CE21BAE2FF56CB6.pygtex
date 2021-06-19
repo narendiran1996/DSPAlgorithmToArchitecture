@@ -1,0 +1,28 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k}{def} \PYG{n+nf}{DFT2Point}\PYG{p}{(}\PYG{n}{xin}\PYG{p}{):}
+    \PYG{k}{return} \PYG{n}{np}\PYG{o}{.}\PYG{n}{asarray}\PYG{p}{([}\PYG{n}{xin}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]}\PYG{o}{+}\PYG{n}{xin}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{],} \PYG{n}{xin}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]}\PYG{o}{\PYGZhy{}}\PYG{n}{xin}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]])}
+
+
+\PYG{k}{def} \PYG{n+nf}{DFTUsingDITRecursive\PYGZus{}2powers}\PYG{p}{(}\PYG{n}{xin}\PYG{p}{):}
+    \PYG{n}{N} \PYG{o}{=} \PYG{n}{xin}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]}
+    \PYG{k}{if} \PYG{n}{np}\PYG{o}{.}\PYG{n}{log2}\PYG{p}{(}\PYG{n}{N}\PYG{p}{)} \PYG{o}{\PYGZpc{}} \PYG{l+m+mi}{1} \PYG{o}{\PYGZgt{}} \PYG{l+m+mi}{0}\PYG{p}{:}
+        \PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}N must powers of 2\PYGZsq{}}\PYG{p}{)}
+        \PYG{k}{return}
+    \PYG{k}{if} \PYG{n}{N} \PYG{o}{==} \PYG{l+m+mi}{2}\PYG{p}{:}
+        \PYG{k}{return} \PYG{n}{DFT2Point}\PYG{p}{(}\PYG{n}{xin}\PYG{p}{)}
+
+    \PYG{n}{xeven} \PYG{o}{=} \PYG{n}{xin}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{::}\PYG{l+m+mi}{2}\PYG{p}{]}
+    \PYG{n}{xodd} \PYG{o}{=} \PYG{n}{xin}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{::}\PYG{l+m+mi}{2}\PYG{p}{]}
+
+    \PYG{n}{Xeven} \PYG{o}{=} \PYG{n}{DFTUsingDITRecursive\PYGZus{}2powers}\PYG{p}{(}\PYG{n}{xeven}\PYG{p}{)}
+    \PYG{n}{Xodd} \PYG{o}{=} \PYG{n}{DFTUsingDITRecursive\PYGZus{}2powers}\PYG{p}{(}\PYG{n}{xodd}\PYG{p}{)}
+
+    \PYG{n}{WN} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{exp}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{n}{j} \PYG{o}{*} \PYG{p}{(}\PYG{l+m+mi}{2}\PYG{o}{*}\PYG{n}{np}\PYG{o}{.}\PYG{n}{pi}\PYG{o}{/}\PYG{n}{N}\PYG{p}{)} \PYG{o}{*} \PYG{n}{np}\PYG{o}{.}\PYG{n}{arange}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{N}\PYG{p}{))}
+
+
+    \PYG{n}{XoddM} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{multiply}\PYG{p}{(}\PYG{n}{Xodd}\PYG{p}{,} \PYG{n}{WN}\PYG{p}{[} \PYG{p}{:} \PYG{n}{N}\PYG{o}{//}\PYG{l+m+mi}{2}\PYG{p}{])}
+
+    \PYG{n}{Temp1} \PYG{o}{=} \PYG{n}{Xeven} \PYG{o}{+} \PYG{n}{XoddM}
+    \PYG{n}{Temp2} \PYG{o}{=} \PYG{n}{Xeven} \PYG{o}{\PYGZhy{}} \PYG{n}{XoddM}
+    \PYG{k}{return} \PYG{n}{np}\PYG{o}{.}\PYG{n}{hstack}\PYG{p}{((}\PYG{n}{Temp1}\PYG{p}{,} \PYG{n}{Temp2}\PYG{p}{))}
+\end{Verbatim}

@@ -1,0 +1,171 @@
+\documentclass{article}
+
+\usepackage[a4paper, left=0.5in, right=0.5in, top=0.5in, bottom=0.5in]{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{commath}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{minted}
+
+
+\title{DFT Implementation}
+\author{Narendiran S}
+\date{19-05-2021}
+
+\begin{document}
+\Large
+\maketitle
+
+The DFT equation is given by:
+
+\begin{align*}
+    X[k] = \sum_{n=0}^{N-1} x[n] e^{-j\frac{2\pi}{N} k n}
+\end{align*}
+
+
+Implementations were done using the following methods:
+
+\begin{enumerate}[label=\alph*)]
+    \item For Loops
+    \item \verb|dftmtx|
+    \item Vector Multiplications
+    \item Decimation In Time (DIT) (Cooley-Tueky)
+\end{enumerate}
+
+
+\section{Using For Loops}
+Steps:
+\begin{itemize}
+    \item Varry k from 0 \dots N-1 to find each value of X.
+    \item Varry n from 0 \dots N-1  to find individual value of X[k].
+    \item Find the exponential argument $\frac{2\pi}{N} k n$.
+    \item Apply exponential on this argument.
+    \item Multiply this exponential value with x[n].
+    \item Accumulate this value for n ranging from  0 \dots N-1.
+    \item Store the results of accumulated value in corresponding X[k]
+\end{itemize}
+
+\section{Using \emph{dftmtx}}
+Using the inbuilt \emph{dftmtx} function in Matlab.
+\emph{dftmtx(N)} gives the F matrix required to solve for DFT from the input.
+
+The basic equation helps in solving this is:
+\begin{align*}
+    \begin{pmatrix}
+        X[0]   \\
+        X[1]   \\
+        X[2]   \\
+        \vdots \\
+        X[N-1]
+    \end{pmatrix}
+      & = \begin{pmatrix}
+        W_N^{0.0}     & W_N^{0.1}     & W_N^{0.2}     & \dots & W_N^{0.(N-1)}     \\
+        W_N^{1.0}     & W_N^{1.1}     & W_N^{1.2}     & \dots & W_N^{1.(N-1)}     \\
+        W_N^{2.0}     & W_N^{2.1}     & W_N^{2.2}     & \dots & W_N^{2.(N-1)}     \\
+        \vdots                                                                    \\
+        W_N^{(N-1).0} & W_N^{(N-1).1} & W_N^{(N-1).2} & \dots & W_N^{(N-1).(N-1)} \\
+    \end{pmatrix}
+    \begin{pmatrix}
+        x[0]   \\
+        x[1]   \\
+        x[2]   \\
+        \vdots \\
+        x[N-1]
+    \end{pmatrix}       \\
+    X & = F x                       \\
+\end{align*}
+
+\section{Vector Multiplication}
+By creating k and n vectors and using them to instead of for loops.
+k Vector is a column vector of $1 \times N$.
+
+\begin{align*}
+    kVector = \begin{pmatrix}
+        0 & 1 & 2 & \dots & N-2 & N-1
+    \end{pmatrix}
+\end{align*}
+
+nVector is a row vector of $N \times 1$.
+
+\begin{align*}
+    nVector = \begin{pmatrix}
+        0 \\ 1 \\ 2 \\ \vdots \\ N-2 \\ N-1
+    \end{pmatrix}
+\end{align*}
+
+
+We perform multiplication to  get the Time-Frequency matrix:
+
+
+\begin{align*}
+    Matrix & = nVector * kVector         \\
+           & = \begin{pmatrix}
+        0 & 0       & 0       & \dots & 0           & 0           \\
+        0 & 1       & 2       & \dots & N-2         & N-1         \\
+        0 & 2       & 4       & \dots & 2*(N-2)     & 2*(N-1)     \\
+        \vdots                                                    \\
+        0 & (N-1)*1 & (N-1)*2 & \dots & (N-1)*(N-2) & (N-1)*(N-1)
+    \end{pmatrix}
+\end{align*}
+
+We perform exponential on this matrix:
+
+\begin{align*}
+    ExpMatrix = e^{-j \frac{2\pi}{N} Matrix}
+\end{align*}
+
+Finally We perform Dot product of input x with the ExpMatrix to get the DFT output X.
+
+\begin{align*}
+    X = x . ExpMatrix
+\end{align*}
+
+The matrix Implementation is shown to understand this.
+\inputminted[frame=lines, linenos]{matlab}{DFTUsingVectorDotProduct.m }
+
+
+\section{Decimation In Time}
+Only for N in powers of 2. If not in powers of 2, append zeros to the right of input.
+Better then vectorized and inbuilt fft (numpy) avialble in python.
+
+We split into even and odd part. (Reduces the N-DFT $\frac{N}{2}$ DFT)
+Then multiply odd part with $W_N$.
+Finally add the reuslt with the even part to get results.
+Recusion is used to get $\frac{N}{2}$ DFTs.
+2-point DFT is a simple addition and subtraction as shown below which is used as the end condition of recursion.
+
+The python implementation helps in understanding the working.
+\begin{minted}[frame=lines, linenos]{python}
+def DFT2Point(xin):
+    return np.asarray([xin[0]+xin[1], xin[0]-xin[1]])
+
+
+def DFTUsingDITRecursive_2powers(xin):
+    N = xin.shape[0]
+    if np.log2(N) % 1 > 0:
+        print('N must powers of 2')
+        return
+    if N == 2:
+        return DFT2Point(xin)
+    
+    xeven = xin[0::2]
+    xodd = xin[1::2]
+
+    Xeven = DFTUsingDITRecursive_2powers(xeven)
+    Xodd = DFTUsingDITRecursive_2powers(xodd)
+
+    WN = np.exp(-1j * (2*np.pi/N) * np.arange(0, N))
+
+    # multiply with only first half of WN - this is all it's needed
+    XoddM = np.multiply(Xodd, WN[ : N//2])
+
+    Temp1 = Xeven + XoddM
+    Temp2 = Xeven - XoddM
+    return np.hstack((Temp1, Temp2))
+\end{minted}
+
+\end{document}
