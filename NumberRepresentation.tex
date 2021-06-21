@@ -1,0 +1,322 @@
+\documentclass{article}
+
+\usepackage[a4paper, left=0.5in, right=0.5in, top=0.5in, bottom=0.5in]{geometry}
+\usepackage{hyperref}
+\usepackage{adjustbox}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{multirow}
+\usepackage{commath}
+\usepackage{xcolor}
+\usepackage{float}
+% \usepackage{minted}
+\usepackage{bytefield}
+\definecolor{lightcyan}{rgb}{0.84,1,1}
+\definecolor{lightgreen}{rgb}{0.64,1,0.71}
+\definecolor{lightred}{rgb}{1,0.7,0.71}
+
+\newcommand{\colorbitbox}[3]{%
+    \rlap{\bitbox{#2}{\color{#1}\rule{\width}{\height}}}%
+    \bitbox{#2}{#3}}
+
+\title{Number Representation}
+\author{Narendiran S}
+\date{20-05-2021}
+
+\begin{document}
+\Large
+\maketitle
+
+\section{Binary Numbers}
+\subsection{Negative Numbers}
+If $x < 0$, then the number is $2^N + x$.
+
+eg) N = 8, for x = -10, then the number is $2^8 + (-10) = 246$
+
+
+\subsection{Fractional numbers/ Real numbers}
+If x is a Fractional number, for M bit Fractional part x can be represented as $x*2^-4$.
+
+For example the number x = '01101.101 = 13.625' is represented as $01101101 * 2^-3 = 109/8 = 13.625$
+For example the number x = '101.01101 = 5.40625' is represented as $10101101 * 2^-5 = 173/32 = 5.40625$
+
+Hence, a scaling factor is used.
+
+
+\subsection{Range of Numbers}
+For N-bit 2's complement integer.
+
+\begin{align*}
+    -2^{N-1}                          & \text{ to }  2^{N-1}-1                               \\
+    \text{(for example N=8)} -2^{8-1} & \text{ to } 2^{8-1}-1 \implies -128 \text{ to } +127
+\end{align*}
+
+For M.L representation of 2's complement real number - M bit for integer and L bit for Fractional.
+
+\begin{align*}
+    -2^{M-1}                          & \text{ to }  2^{M-1} - 2^{-L}                               \\
+    \text{(for example 7.3)} -2^{7-1} & \text{ to } 2^{7-1}-2^{-3} \implies -64 \text{ to } +63.875 \\
+\end{align*}
+
+
+\subsection{Dynamic Range}
+for an 8-bit Integer: smallest positve number = 1 and largest positve number is +127.
+
+Then the Dynamic range $ = \frac{127}{1} = 2^7-1 = 2^{8-1} - 1$
+
+for an 8-bit 4.4 Number: smallest positve number = $2^{-4}$ ane largest positive number is $7.875 = 2^3 - 2^-4 = 2^{M-1} - 2^{-L}$
+
+Then the Dynamic range is $=\frac{2^3 - 2^-4}{2^{-4}} = 2^7 - 1 = 2^{M+L}-1$.
+
+\textbf{From this, the Dynamic range of M.L format depeneds on M+L and not no where the decimal point is.}
+
+
+Therefore, for a 32-bit fixed point number the Dynamic range is $2^{31}$
+
+
+\subsection{Fixed Point Arithmetic Operations}
+We can represented Fixed point as
+
+\begin{align*}
+    F = I . S
+\end{align*}
+where F is the fixed point, I is the integer and S is the scaling factor.
+
+An example woule be to represent F = 12.5 in 6.2 format, then the I would be 50 and scaling factor S wiould $2^-2$.
+So we get $50*2^-2 = 12.5$
+
+
+\subsubsection{Addition}
+
+
+\begin{align*}
+    F_1 + F_2 & = I_1.S + I_2.S \\
+              & = (I_1 + I_2).S
+\end{align*}
+
+For same scaling factor, from the above, we can use normal adders used for integers to perform Addition.
+
+\textbf{For differnt scaling factor alignment must be done.}
+
+\subsubsection{Subtraction}
+
+
+\begin{align*}
+    F_1 - F_2 & = I_1.S - I_2.S \\
+              & = (I_1 - I_2).S
+\end{align*}
+
+For same scaling factor, from the above, we can use normal subtractors used for integers to perform Subtraction.
+
+\textbf{For differnt scaling factor alignment must be done.}
+
+\subsubsection{Multiplication}
+
+\begin{align*}
+    F_1 \times F_2 & = I_1.S \times I_2.S             \\
+                   & = (I_1 \times I_2). (S \times S) \\
+\end{align*}
+
+FOr example, for 4.4 number $\times$ 4.4 number, we get a 16-bit result - which is a 8.8 (4+4.4+4) number.
+FOr example, for 2.6 number $\times$ 5.3 number, we get a 16-bit result - which is a 7.9 (2+5.6+3) number.
+
+Multiplication causes more precision in the Fractional part.
+Now, we can drop either of the integer part or ractional part depending on our applicaion and requireemnt.
+
+
+\subsection{Disadvantage of Fixed-Point}
+\begin{itemize}
+    \item Dynamic range is poor.
+\end{itemize}
+
+\section{Single-Point Precision Floating numbers}
+
+\textbf{Sources: \href{http://steve.hollasch.net/cgindex/coding/ieeefloat.html}{Steve Hollasch Blog}}
+
+In fixed-point, we explicitly say the scaling factor.
+\textbf{But in Floating point, we have the scaling factor embeeded along with the number to store.}
+
+For a 32-bit number we have a sign bit, 8-bit Exponent and 23-bit mantinsa.
+23-bit mantinsa is always positive.
+
+
+
+\begin{bytefield}[bitheight=2em,bitwidth=1.4em,
+        boxformatting={\centering\small}]{32}
+    \bitheader[endianness=big]{31,30,23,22,0} \\
+    \colorbitbox{lightcyan}{1}{S} &
+    \colorbitbox{lightgreen}{8}{Exponent} &
+    \colorbitbox{lightred}{16}{mantisa}\\
+\end{bytefield}
+
+\begin{itemize}
+    \item Mantisa is the actual value.
+    \item Mantisa decides the precision.
+    \item Exponent provides the Dynamic range.
+    \item We use normalized notation. ie.) Matisa has always 1 followed by 23 bits of number but we wont' store the one - it is implicitly assumed.
+          \begin{itemize}
+              \item mantisa is 24-bit $1 . m_{23} m_{22} \dots m_2 m_1 m_0$
+              \item But we store only the 23-bit $m_{23} m_{22} \dots m_2 m_1 m_0$
+          \end{itemize}
+    \item the Exponent e is an unsigned 8-bit integer. (0-255)
+    \item Minimum value of mantinsa = [1 . 0 0 0 \dots 0 0] = 1
+    \item Maximum value of mantinsa = [1 . 1 1 1 \dots 1 1] = $2 -  2^{23} \approx 2$
+    \item 23-bit Mantisa actually holds 24 bit of implied 'one'.
+
+\end{itemize}
+
+Hence, the number can be:
+\begin{align*}
+    x = [1 . m_{23} m_{22} \dots m_2 m_1 m_0] \times 2^{e-127}
+\end{align*}
+
+The smallest positive value is
+$\implies S=0, e=1\text{ (0 reserved)}, m=0 \implies [1.000 \dots 0] 2^{1-127} = 1.0 \times 2^{-126}$
+
+
+The largest positive value is
+$\implies S=0, e=254\text{ (255 reserved)}, m=2 \implies [1.111\dots 1] 2^{254-127} = (2-2) \times 2^{127}$
+
+
+Hence, the Dynamic range is $\frac{2^{128}}{2^{-126}} = 2^{254}$
+
+\subsection{Normalized number}
+Assume leading 1 before the binary point.
+There will be an 1 before the mantisa
+
+\begin{table}[H]
+    \begin{center}
+        \begin{tabular}{|c|c|c|p{7.3cm}|}
+            \hline
+            \textbf{Sign (S)} & \textbf{Exponent (e)}   & \textbf{Mantisa (m)} & \textbf{Value}             \\
+            \hline
+            0                 & 00000001                & 000 \dots 00         & \begin{tabular}{@{}c@{}}Smallest Positive normalized number  \\ =$(-1)^0 \times [1.000 \dots 00] \times 2^{1-127}$ \\ =$+1.0 \times 2^{1-127}$ \\ =$+2^{-126}$ \end{tabular} \\
+            \hline
+            1                 & 00000001                & 000 \dots 00         & \begin{tabular}{@{}c@{}}Smallest Negative normalized number  \\ =$(-1)^1 \times [1.000 \dots 00] \times 2^{1-127}$ \\ =$-1.0 \times2^{-126}$ \\ =$-2^{-126}$ \end{tabular} \\
+            \hline
+            0                 & 11111110                & 111 \dots 11         & \begin{tabular}{@{}c@{}}Largest Positive normalized number  \\ =$(-1)^0 \times [1.111 \dots 11] \times 2^{254-127}$ \\ =$+(2-2^{-23}) \times 2^{127}$ \\  \end{tabular} \\
+            \hline
+            1                 & 11111110                & 111 \dots 11         & \begin{tabular}{@{}c@{}}Largest Negative normalized number  \\ =$(-1)^1 \times [1.111 \dots 11] \times 2^{254-127}$ \\ =$-(2-2^{-23}) \times 2^{127}$ \\  \end{tabular} \\
+            \hline
+            0                 & 00000001 \dots 11111110 & XXX \dots XX         & \begin{tabular}{@{}c@{}} Positive normalized Range\\ =$+ [1. m_{23} m_{22} \dots m_2 m_1 m_0] 2^{e-127}$  \end{tabular} \\
+            \hline
+            1                 & 00000001 \dots 11111110 & XXX \dots XX         & \begin{tabular}{@{}c@{}} Negative normalized Range\\ =$- [1. m_{23} m_{22} \dots m_2 m_1 m_0] 2^{e-127}$  \end{tabular} \\
+            \hline
+        \end{tabular}
+    \end{center}
+\end{table}
+
+
+\subsection{Denormalized Numbers}
+Special Case occurs when all the bits of exponent are 0s.
+Assume leading 0 before the binary point.
+There will be an 0 before the mantisa.
+The value can be written as $(-1)^S \times [0. m_{23} m_{22} \dots m_2 m_1 m_] \times 2^{-126}$.
+The exponent is -126 and not $0-127 = -127$, because of the implict one assumed in this special case.
+
+Hence, the smallest posivie number can now go beyound  $2^{-126}$ when exponent is all zeros and the mantinsa can provide with values.
+So the Denormalized number can be represented as shown below:
+
+\begin{table}[H]
+    \begin{center}
+        \begin{tabular}{|c|c|c|p{7.3cm}|}
+            \hline
+            \textbf{Sign (S)} & \textbf{Exponent (e)} & \textbf{Mantisa (m)}       & \textbf{Value}             \\
+            \hline
+            0                 & 00000000              & 000 \dots 01               & \begin{tabular}{@{}c@{}}Smallest Positive Denormalized number  \\ =$(-1)^0 \times [0.000 \dots 01] \times 2^{-126}$ \\ =$+2^{-23} 2^{-126}$ \\ =$+2^{-149}$ \end{tabular} \\
+            \hline
+            1                 & 00000000              & 000 \dots 01               & \begin{tabular}{@{}c@{}}Smallest Negative Denormalized number  \\ =$(-1)^1 \times [0.000 \dots 01] \times 2^{-126}$ \\ =$-2^{-23} 2^{-126}$ \\ =$-2^{-149}$ \end{tabular} \\
+            \hline
+            0                 & 00000000              & 111 \dots 11               & \begin{tabular}{@{}c@{}}Largest Positive Denormalized number  \\ =$(-1)^0 \times [0.111 \dots 11] \times 2^{-126}$ \\ =$(1-2^{-23}) \times 2^{-126}$ \\  \end{tabular} \\
+            \hline
+            1                 & 00000000              & 111 \dots 11               & \begin{tabular}{@{}c@{}}Largest Negative Denormalized number  \\ =$(-1)^1 \times [0.111 \dots 11] \times 2^{-126}$ \\ =$-(1-2^{-23}) \times 2^{-126}$ \\  \end{tabular} \\
+            \hline
+            0                 & 00000000              & \begin{tabular}{@{}c@{}} 000 \dots 01 \\ \vdots\\ 111 \dots 11\\   \end{tabular} & \begin{tabular}{@{}c@{}} Positive denormalized Range\\ =$+ [0. m_{23} m_{22} \dots m_2 m_1 m_0] 2^{-126}$  \end{tabular} \\
+            \hline
+            1                 & 00000000              & \begin{tabular}{@{}c@{}} 000 \dots 01 \\ \vdots\\ 111 \dots 11\\   \end{tabular} & \begin{tabular}{@{}c@{}} Negative denormalized Range\\ =$- [0. m_{23} m_{22} \dots m_2 m_1 m_0] 2^{-126}$  \end{tabular} \\
+            \hline
+        \end{tabular}
+    \end{center}
+\end{table}
+
+
+\subsection{Special Cases}
+NaN - Not A Numbers
+
+\begin{table}[H]
+    \begin{center}
+        \begin{tabular}{|c|c|c|c|}
+            \hline
+            \textbf{Sign (S)} & \textbf{Exponent (e)} & \textbf{Mantisa (m)} & \textbf{Value} \\
+            \hline
+            0                 & 00000000              & 000 \dots 00         & +0             \\
+            \hline
+            1                 & 00000000              & 000 \dots 00         & -0             \\
+            \hline
+            0                 & 11111111              & 000 \dots 00         & $+\infty$      \\
+            \hline
+            1                 & 11111111              & 000 \dots 00         & $-\infty$      \\
+            \hline
+            0                 & 11111111              & 0XX \dots XX         & SNaN           \\
+            \hline
+            1                 & 11111111              & 0XX \dots XX         & SNaN           \\
+            \hline
+            0                 & 11111111              & 1XX \dots XX         & QNaN           \\
+            \hline
+            1                 & 11111111              & 1XX \dots XX         & QNaN           \\
+            \hline
+        \end{tabular}
+    \end{center}
+\end{table}
+
+
+\subsection{Numbers which can't be represented}
+\begin{itemize}
+    \item Positive number greater than $(2-2^{-23}) \times 2^{127}$ (positive overflow)
+    \item Negative number less than $-(2-2^{-23}) \times 2^{127}$ (negative overflow)
+    \item Zero
+    \item Positive numbers less than $2^{-149}$ (positive underflow)
+    \item Negative numbers greater than $-2^{-149}$ (neagative underflow)
+\end{itemize}
+
+\subsection{Conversion base-10 to Floating point}
+
+
+\begin{table}[H]
+    \begin{center}
+
+        \begin{adjustbox}{max width=\textwidth}
+            \begin{tabular}{|c|c|c|c|c|c|}
+                \hline
+                \textbf{Value} & \textbf{Calculation}       & \textbf{Sign (S)} & \textbf{Exponent (e)} & \textbf{Mantisa (m)}      & \textbf{Hex Rep} \\
+                \hline
+                +0             &                            & 0                 & 00000000              & 000 \dots 00              & 0x00000000       \\
+                \hline
+                -0             &                            & 0                 & 00000000              & 000 \dots 00              & 0x80000000       \\
+                \hline
+                $+\infty$      &                            & 0                 & 11111111              & 000 \dots 00              & 0x7F800000       \\
+                \hline
+                $-\infty$      &                            & 1                 & 11111111              & 000 \dots 00              & 0xFF800000       \\
+                \hline
+                % 1.40129846e-45 & \begin{tabular}{@{}c@{}}  \end{tabular} & 0                 &                       &                      \\            
+                0.2            & \begin{tabular}{@{}c@{}}$0.2_{10} = 0.00110011001100110011001100_2$ \\ $=1.10011001100110011001100 \times 2^{3}$ \end{tabular} & 0                 & $127-3 = 124$         & $10011001100110011001100$ & 0x3E4CCCCC       \\
+                \hline
+                1.0            & \begin{tabular}{@{}c@{}}$1.0_{10} = 1.00000000000000000000000_2$ \\ $=1.00000000000000000000000 \times 2^{0}$ \end{tabular} & 0                 & $127-0 = 127$         & $00000000000000000000000$ & 0x3F800000       \\
+                \hline
+                1.99999988     & \begin{tabular}{@{}c@{}}$1.99999988_{10} = 1.11111111111111111111110_2$ \\ $=1.11111111111111111111110 \times 2^{0}$ \end{tabular} & 0                 & $127-0 = 127$         & $11111111111111111111110$ & 0x3FFFFFFE       \\
+                \hline
+                16,777,215     & \begin{tabular}{@{}c@{}} $16777215_{10} = 111111111111111111111111_2$\\$1.11111111111111111111111 \times  2^{-23}$\end{tabular} & 0                 & $127-(-23) = 150$     & $11111111111111111111111$ & 0x4B7FFFFF       \\
+                \hline
+                3.40282347e+38 & I DONT' KNOW               & 0                 & 254                   & 11111111111111111111111   & 0x7F7FFFFF       \\
+                \hline
+            \end{tabular}
+        \end{adjustbox}
+
+    \end{center}
+\end{table}
+
+
+\end{document}
