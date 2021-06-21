@@ -132,24 +132,26 @@ Now, we can drop either of the integer part or ractional part depending on our a
     \item Dynamic range is poor.
 \end{itemize}
 
-\section{Single-Point Precision Floating numbers}
 
+
+\section{Single-Point Precision Floating numbers}
 \textbf{Sources: \href{http://steve.hollasch.net/cgindex/coding/ieeefloat.html}{Steve Hollasch Blog}}
 
 In fixed-point, we explicitly say the scaling factor.
 \textbf{But in Floating point, we have the scaling factor embeeded along with the number to store.}
 
+The standard is IEEE 754.
 For a 32-bit number we have a sign bit, 8-bit Exponent and 23-bit mantinsa.
 23-bit mantinsa is always positive.
 
 
-
-\begin{bytefield}[bitheight=2em,bitwidth=1.4em,
+\vspace*{2em}
+\begin{bytefield}[bitheight=2em,bitwidth=1.13em,
         boxformatting={\centering\small}]{32}
     \bitheader[endianness=big]{31,30,23,22,0} \\
     \colorbitbox{lightcyan}{1}{S} &
     \colorbitbox{lightgreen}{8}{Exponent} &
-    \colorbitbox{lightred}{16}{mantisa}\\
+    \colorbitbox{lightred}{23}{mantisa}\\
 \end{bytefield}
 
 \begin{itemize}
@@ -168,9 +170,10 @@ For a 32-bit number we have a sign bit, 8-bit Exponent and 23-bit mantinsa.
 
 \end{itemize}
 
+
 Hence, the number can be:
 \begin{align*}
-    x = [1 . m_{23} m_{22} \dots m_2 m_1 m_0] \times 2^{e-127}
+    x = (-1)^S  \times [1 . m_{23} m_{22} \dots m_2 m_1 m_0] \times 2^{e-127}
 \end{align*}
 
 The smallest positive value is
@@ -318,5 +321,10 @@ NaN - Not A Numbers
     \end{center}
 \end{table}
 
+
+\begin{itemize}
+    \item Floating point Addition (Subtraction) is toughter than Fixed point Addition (Subtraction)
+    \item Floating point Multiplication is easier than Fixed point Multiplication
+\end{itemize}
 
 \end{document}
